@@ -1,0 +1,63 @@
+{
+  "name": "voting-dapp",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@chakra-ui/react": "^1.8.8",
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "@testing-library/jest-dom": "^5.9.0",
+    "@testing-library/react": "^10.2.1",
+    "@testing-library/user-event": "^12.0.2",
+    "chai": "^4.3.6",
+    "dotenv": "^16.0.0",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.4",
+    "framer-motion": "^4.0.0",
+    "fs": "^0.0.1-security",
+    "ganache-cli": "^6.12.2",
+    "hardhat": "^2.9.3",
+    "os": "^0.1.2",
+    "path": "^0.12.7",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-icons": "^3.0.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^0.2.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "account": "npx hardhat account",
+    "accounts": "npx hardhat accounts",
+    "chain": "npx hardhat node --network hardhat",
+    "clean": "npx hardhat clean",
+    "compile": "npx hardhat compile",
+    "coverage": "npx hardhat coverage --testfiles test/*.js --network localhost",
+    "deploy": "node scripts/deploy.js",
+    "generate": "npx hardhat generate",
+    "help": "npx hardhat help",
+    "test-contract": "npx hardhat test",
+    "verify": "npx hardhat etherscan-verify --api-key 2ZVQM5N7KMZVNSGE2BJY2KDU28N7QGCA9T"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
