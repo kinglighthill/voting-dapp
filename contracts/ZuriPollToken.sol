@@ -20,7 +20,7 @@ contract ZuriPollToken is ERC20, ERC20Snapshot, Ownable, ERC20Permit, ERC20Votes
         _mint(to, amount);
     }
 
-    // The following functions are overrides required by Solidity.
+    // The following functions are overrides required by Solidity to.
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
