@@ -6,11 +6,7 @@ contract ZuriPollToken {
 
     }
 
-    function mint() public {
-
-    } 
-
     function buyToken() public {
-        
+
     }
 }
