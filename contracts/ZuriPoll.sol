@@ -12,9 +12,9 @@ contract ZuriPoll {
     
     event EndElection(uint256 electionId, uint256 timeEnded);
 
-    event Voted(address voter, uint256 electionId, uint256 pollId, address candidate, uint256 timeVoted);
+    event Voted(address voter, uint256 timeVoted);
 
-    event DeclaredInterest(address candidate, uint256 electionId, uint256 pollId, uint256 timeDeclared);
+    event DeclaredInterest(address candidate, uint256 timeDeclared);
 
     event StakeHolderAdded(address addedBy, uint256 timeAdded);
 
@@ -35,17 +35,17 @@ contract ZuriPoll {
         address id;
         string manifesto;
         bool disqualified;
-        address[] voters;
+        // address[] voters;
     }
 
     struct Poll {
         uint256 id;
         string position;
         string description;
-        PositionType positionType;
+        // PositionType positionType;
         Role roleLimit;
-        uint256 fee; 
-        Candidate[] contestants;
+        // uint256 fee; 
+        // Candidate[] contestants;
         uint256 totalVotes;
         address winner;
     }
@@ -53,7 +53,7 @@ contract ZuriPoll {
     struct Election {
         uint256 id;
         address creator;
-        Poll[] polls;
+        // Poll[] polls;
         bool enabled;
         bool show;
     }
@@ -64,11 +64,12 @@ contract ZuriPoll {
 
     Election[] internal elections;
 
-    uint256 internal id = 0;
+    uint256 internal electionId = 0;
+    uint256 internal pollId = 0;
 
-    // mapping(uint256 => Poll[]) internal pollsMap;
-    // mapping(uint256 => Candidate[]) internal contestants;
-    // mapping(uint256 => address[]) internal voters;
+    mapping(uint256 => Poll[]) internal polls;
+    mapping(uint256 => Candidate[]) internal contestants;
+    mapping(address => address[]) internal electorates;
     
 
     constructor() { 
@@ -229,31 +230,29 @@ contract ZuriPoll {
         emit StakeHoldersRemoved(msg.sender, block.timestamp, stakeholdersRemoved);
     }
 
-    function createsElection(string[] calldata _positions, string[] calldata _descriptions, uint256[] calldata _positionTypes, uint256[] calldata _roleLimits, 
-        uint256[] calldata fees) public onlyChairmanAdminsAndTeachers {
+    function createsElection(string[] calldata _positions, string[] calldata _descriptions, uint256[] calldata _roleLimits) 
+        public onlyChairmanAdminsAndTeachers {
         // only admin/chairman can create the election
         // adds the different positions available and roles that can vie and cost of each post
         // sets election date
 
         require(_positions.length == _descriptions.length, "Invalid input parameters");
-        require(_positions.length == _positionTypes.length, "Invalid input parameters");
+        // require(_positions.length == _positionTypes.length, "Invalid input parameters");
         require(_positions.length == _roleLimits.length, "Invalid input parameters");
-        require(_positions.length == fees.length, "Invalid input parameters");
+        // require(_positions.length == fees.length, "Invalid input parameters");
 
         require(_positions.length <= 20, "exceeds number of allowed inputs");
 
-        Poll[] memory _polls;
-
-        uint256 _id = id;
+        Poll[] storage _polls = polls[electionId];
 
         for(uint256 i = 0; i < _positions.length; i++) {
-            PositionType _positionType;
+            // PositionType _positionType;
 
-            if ( _positionTypes[i] == 1) {
-                _positionType = PositionType.PAID;
-            } else {
-                _positionType = PositionType.FREE;
-            }
+            // if ( _positionTypes[i] == 1) {
+            //     _positionType = PositionType.PAID;
+            // } else {
+            //     _positionType = PositionType.FREE;
+            // }
 
             Role roleLimit;
 
@@ -265,19 +264,22 @@ contract ZuriPoll {
                 roleLimit = Role.STUDENT;
             }
 
-            Candidate[] memory candidates;
-            Poll memory poll = Poll(i, _positions[i], _descriptions[i], _positionType, roleLimit, fees[i], candidates, 0, address(0));
+            // Candidate[] memory candidates;
+            // Poll memory poll = Poll(i, _positions[i], _descriptions[i], _positionType, roleLimit, fees[i], candidates, 0, address(0));
+            Poll memory poll = Poll(pollId, _positions[i], _descriptions[i], Role.ADMIN, 0, address(0));
+            _polls.push(poll);
             
-            _polls[i] = poll;
+            pollId += 1;
         }
 
-        (bool _electionExists, ) = electionExists(_id);
+        (bool _electionExists, ) = electionExists(electionId);
 
         if (!_electionExists) {
-            elections.push(Election(_id, msg.sender, _polls, false, false));
+            elections.push(Election(electionId, msg.sender, false, false));
+            polls[electionId] = _polls;
 
-            id += 1;
-            emit ElectionCreated(msg.sender, _id, block.timestamp);
+            emit ElectionCreated(msg.sender, electionId, block.timestamp);
+            electionId += 1;
         }
     }
 
@@ -285,11 +287,10 @@ contract ZuriPoll {
         // allows stakeholders to declare interest 
         // only eligible stakeholders can declare interest
 
-        (bool _electionExists, uint256 _electionPosition) = electionExists(_electionId);
+        (bool _electionExists, ) = electionExists(_electionId);
 
         if (_electionExists) {
-            Election storage _polls = elections[_electionPosition];
-            Poll[] storage pollsArray = _polls.polls;
+            Poll[] storage pollsArray = polls[_electionId];
 
             (bool _pollExists, uint256 _pollPosition) = pollExists(_pollId, pollsArray);
 
@@ -297,16 +298,16 @@ contract ZuriPoll {
                 Poll storage _poll = pollsArray[_pollPosition];
                 
                 if (canVie(msg.sender, _poll.roleLimit)) {    
-                    (bool _candidateExists, ) = candidateExists(msg.sender, _poll.contestants);
+                    (bool _candidateExists, ) = candidateExists(msg.sender, contestants[_poll.id]);
 
                     if (!_candidateExists) {
                         // checks if position is free or paid check balance and transfer fee to contract
-                        address[] memory voters;
-                        Candidate memory _candidate = Candidate(msg.sender, _manifesto, false, voters);
-                        Candidate[] storage _contestants = _poll.contestants;
+                        Candidate memory _candidate = Candidate(msg.sender, _manifesto, false);
+                        Candidate[] storage _contestants = contestants[_poll.id];
                         _contestants.push(_candidate);
+                        contestants[_poll.id] = _contestants;
                         
-                        emit DeclaredInterest(msg.sender, _electionId, _pollId, block.timestamp);
+                        emit DeclaredInterest(msg.sender, block.timestamp);
                     }
                 }
             }
@@ -317,28 +318,28 @@ contract ZuriPoll {
         // for voting
         // anyone can vote
 
-        (bool _electionExists, uint256 _electionPosition) = electionExists(_electionId);
+        (bool _electionExists, ) = electionExists(_electionId);
 
         if (_electionExists) {
-            Election storage _polls = elections[_electionPosition];
-
-            (bool _pollExists, uint256 _pollPosition) = pollExists(_pollId, _polls.polls);
+            (bool _pollExists, uint256 _pollPosition) = pollExists(_pollId, polls[_electionId]);
 
             if (_pollExists) {
-                Poll storage _poll = _polls.polls[_pollPosition];  
+                Poll storage _poll = polls[_electionId][_pollPosition];  
                     
-                (bool _candidateExists, uint256 _candidatePosition) = candidateExists(_candidate, _poll.contestants);
+                (bool _candidateExists, uint256 _candidatePosition) = candidateExists(_candidate, contestants[_poll.id]);
 
                 if (_candidateExists) {
-                    Candidate storage candidate = _poll.contestants[_candidatePosition];
-                    (bool _voterExists, ) = voterExists(msg.sender, candidate.voters);
+                    Candidate storage candidate = contestants[_poll.id][_candidatePosition];
+                    (bool _voterExists, ) = voterExists(msg.sender, electorates[candidate.id]);
 
                     if (!_voterExists) {
                         // check balance and transfer token to contract
-                        address[] storage voters = candidate.voters;
+                        address[] storage voters = electorates[candidate.id];
                         voters.push(msg.sender);
 
-                        emit Voted(msg.sender, _electionId, _pollId, _candidate, block.timestamp);
+                        electorates[candidate.id] = voters;
+
+                        emit Voted(msg.sender, block.timestamp);
                     }
                 }
             }
@@ -381,19 +382,19 @@ contract ZuriPoll {
 
             require(_polls.enabled, "Voting has not ended");
 
-            Poll[] memory _innerPolls = _polls.polls;
+            Poll[] memory _innerPolls = polls[_id];
 
             for(uint256 i = 0; i < _innerPolls.length; i++) {
                 Poll memory _poll = _innerPolls[i];
-                Candidate[] memory _candidates = _poll.contestants;
+                Candidate[] memory _candidates = contestants[_poll.id];
                 
                 uint256 maxVote = 0;
                 
                 for(uint256 j = 0; j < _candidates.length; j++) { 
-                    if (_candidates[j].voters.length > maxVote) {
-                        maxVote = _candidates[j].voters.length;
+                    if (electorates[_candidates[j].id].length > maxVote) {
+                        maxVote = electorates[_candidates[j].id].length;
                         _poll.winner = _candidates[j].id;
-                    } else if (_candidates[j].voters.length == maxVote) {
+                    } else if (electorates[_candidates[j].id].length == maxVote) {
                         _poll.winner = address(0);
                     }
                 }
@@ -490,4 +491,28 @@ contract ZuriPoll {
 
         return (false, 0);
     }
+
+    // function pollExists(uint256 _id, Poll[] memory _polls) internal pure returns(bool, uint256) { 
+    //     for (uint256 i = 0; i < _polls.length; i++) {
+    //         if (_id == _polls[i].id) return (true, i);
+    //     }
+
+    //     return (false, 0);
+    // }
+
+    // function candidateExists(address _id, Candidate[] memory _candidates) internal pure returns(bool, uint256) { 
+    //     for (uint256 i = 0; i < _candidates.length; i++) {
+    //         if (_id == _candidates[i].id && !_candidates[i].disqualified) return (true, i);
+    //     }
+
+    //     return (false, 0);
+    // }
+
+    // function voterExists(address _id, address[] memory _voters) internal pure returns(bool, uint256) { 
+    //     for (uint256 i = 0; i < _voters.length; i++) {
+    //         if (_id == _voters[i]) return (true, i);
+    //     }
+
+    //     return (false, 0);
+    // }
 }
