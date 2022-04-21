@@ -27,16 +27,16 @@ const defaultNetwork = "localhost"
  */
 module.exports = {
   solidity: "0.8.4",
-  defaultNetwork: `${defaultNetwork}`,
+  defaultNetwork: "localhost",
   networks: {
     hardhat: {
-      chainId: 1337
+     chainId: 1337
     },
-    rinkeby: {
-      url: API_URL,
-      accounts: [METAMASK_PRIVATE_KEY],
-    }
-  },
+       // rinkeby: {
+    //   url: API_URL,
+    //   accounts: [METAMASK_PRIVATE_KEY],
+    // }
+      },
   etherscan: {
     apiKey: `${ETHERSCAN_API_KEY}`
   },
