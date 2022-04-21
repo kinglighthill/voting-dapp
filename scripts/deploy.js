@@ -39,8 +39,8 @@ async function main() {
 const writeAddressAndAbiToFile = (name, address) => {
   const abi = fs.readFileSync(`src/artifacts/contracts/${name}.sol/${name}.json`);
 
-  fs.writeFileSync('./src/contracts/abi.json', abi);
-  fs.writeFileSync('./src/contracts/contract_address.json', address)
+  fs.writeFileSync(`./src/contracts/${name}_abi.json`, abi);
+  fs.writeFileSync(`./src/contracts/${name}_contract_address.json`, address)
 }
 
 const runMain = async () => {

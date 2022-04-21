@@ -5,7 +5,7 @@ require("solidity-coverage");
 
 require('dotenv').config()
 
-const { API_URL, METAMASK_PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env
+const { API_URL_INFURA, METAMASK_PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -17,7 +17,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const defaultNetwork = "localhost"
+const defaultNetwork = "rinkeby"
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -33,7 +33,7 @@ module.exports = {
       chainId: 1337
     },
     rinkeby: {
-      url: API_URL,
+      url: API_URL_INFURA,
       accounts: [METAMASK_PRIVATE_KEY],
     }
   },

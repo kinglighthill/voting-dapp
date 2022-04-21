@@ -28,7 +28,8 @@
     "react-icons": "^3.0.0",
     "react-scripts": "5.0.1",
     "solidity-coverage": "^0.7.20",
-    "web-vitals": "^0.2.2"
+    "web-vitals": "^0.2.2",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",

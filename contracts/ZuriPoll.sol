@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
+import "./ZuriPollToken.sol";
+
 contract ZuriPoll {
     enum Role { CHAIRMAN, ADMIN, TEACHER, STUDENT }
 
@@ -16,19 +18,22 @@ contract ZuriPoll {
 
     event DeclaredInterest(address candidate, uint256 timeDeclared);
 
-    event StakeHolderAdded(address addedBy, uint256 timeAdded);
+    event StakeHolderAdded(address addedBy, uint256 timeAdded, bool added);
 
     event StakeHoldersAdded(address addedBy, uint256 timeAdded, uint256 length);
 
-    event StakeHolderRemoved(address removedBy, uint256 timeRemoved);
+    event StakeHolderRemoved(address removedBy, uint256 timeRemoved, bool removed);
 
     event StakeHoldersRemoved(address removedBy, uint256 timeRemoved, uint256 length);
+
+    event ChairmanChanged(bool isStakeholder, bool chairmanExists, uint256 timeChanged);
 
     event ShowResult(uint256 electionId, uint256 timeEnded);
 
     struct Stakeholder {
         address id;
         Role role;
+        string name;
     }
 
     struct Candidate {
@@ -125,9 +130,11 @@ contract ZuriPoll {
         _;
     }
 
-    function addChairman(address _chairman) public onlyOwner validAddress(_chairman) {
+    function addChairman(address _chairman, string memory _name) public onlyOwner validAddress(_chairman) {
         // only owner can add chairman
-        addStakeHolder(_chairman, 0);
+
+        bool added = addStakeHolder(_chairman, 0, _name);
+        if (added) emit StakeHolderAdded(msg.sender, block.timestamp, added);
     }
 
     function transferChairmanship(address _chairman) public onlyOwnerAndChairman validAddress(_chairman) { 
@@ -135,9 +142,17 @@ contract ZuriPoll {
         (bool _isStakeholder, uint256 stakeholderPosition) = isStakeHolder(_chairman);
         (bool _isChairman, uint256 chairmanPosition) = getChairman();
 
-        if (_isStakeholder && _isChairman) {
-            stakeholders[stakeholderPosition].role = Role.TEACHER;
-            stakeholders[chairmanPosition].role = Role.ADMIN;
+        if (_isStakeholder && _isChairman && stakeholders[chairmanPosition].role != Role.TEACHER 
+            && stakeholders[chairmanPosition].role != Role.STUDENT) {
+                Stakeholder storage newChairman = stakeholders[stakeholderPosition];
+                newChairman.role = Role.CHAIRMAN;
+                Stakeholder storage oldChairman = stakeholders[chairmanPosition];
+                oldChairman.role =  Role.ADMIN;
+
+                stakeholders[stakeholderPosition] = newChairman;
+                stakeholders[chairmanPosition] = oldChairman;
+
+                emit ChairmanChanged(_isStakeholder, _isChairman, block.timestamp);
         }
     }
 
@@ -179,15 +194,15 @@ contract ZuriPoll {
         return stakeholders.length;
     }
 
-    function addStakeholder(address _stakeholder, uint256 _role) public onlyOwnerChairmanAndAdmins validAddress(_stakeholder) {
+    function addStakeholder(address _stakeholder, uint256 _role, string memory _name) public onlyOwnerChairmanAndAdmins validAddress(_stakeholder) {
         // add a single stakeholder and their role
         // only owner, chairman and teachers can add stakeholder
 
-        bool added = addStakeHolder(_stakeholder, _role);
-        if (added) emit StakeHolderAdded(msg.sender, block.timestamp);
+        bool added = addStakeHolder(_stakeholder, _role, _name);
+        if (added) emit StakeHolderAdded(msg.sender, block.timestamp, added);
     }
 
-    function addStakeholders(address[] calldata _stakeholders, uint256[] calldata _roles) public onlyOwnerChairmanAndAdmins {
+    function addStakeholders(address[] calldata _stakeholders, uint256[] calldata _roles, string[] calldata _names) public onlyOwnerChairmanAndAdmins {
         // batch add of stakeholders and their roles
         // only owner, chairman and teachers can add stakeholders
 
@@ -197,7 +212,7 @@ contract ZuriPoll {
         uint stakeholdersAdded = 0;
 
         for(uint256 i = 0; i < _stakeholders.length; i++) {
-            bool added = addStakeHolder(_stakeholders[i], _roles[i]);
+            bool added = addStakeHolder(_stakeholders[i], _roles[i], _names[i]);
 
             if (added) stakeholdersAdded += 1;
         }
@@ -210,7 +225,7 @@ contract ZuriPoll {
         // only owner, chairman and teachers can remove stakeholder
 
         bool removed = removeStakeHolder(_stakeholder);
-        if (removed) emit StakeHolderRemoved(msg.sender, block.timestamp);
+        if (removed) emit StakeHolderRemoved(msg.sender, block.timestamp, removed);
     }
 
     function removeStakeholders(address[] calldata _stakeholders) public onlyOwnerChairmanAndAdmins {
@@ -229,6 +244,10 @@ contract ZuriPoll {
 
         emit StakeHoldersRemoved(msg.sender, block.timestamp, stakeholdersRemoved);
     }
+
+    function getStakeholders() public view returns(Stakeholder[] memory) { 
+        return stakeholders;
+    }    
 
     function createsElection(string[] calldata _positions, string[] calldata _descriptions, uint256[] calldata _roleLimits) 
         public onlyChairmanAdminsAndTeachers {
@@ -268,7 +287,7 @@ contract ZuriPoll {
             // Poll memory poll = Poll(i, _positions[i], _descriptions[i], _positionType, roleLimit, fees[i], candidates, 0, address(0));
             Poll memory poll = Poll(pollId, _positions[i], _descriptions[i], Role.ADMIN, 0, address(0));
             _polls.push(poll);
-            
+
             pollId += 1;
         }
 
@@ -417,7 +436,7 @@ contract ZuriPoll {
         }
     }
 
-    function addStakeHolder(address _stakeholder, uint256 _role) internal returns(bool) {
+    function addStakeHolder(address _stakeholder, uint256 _role, string memory _name) internal returns(bool) {
         (bool _isStakeholder, ) = isStakeHolder(_stakeholder);
 
         if (!_isStakeholder) {
@@ -433,7 +452,7 @@ contract ZuriPoll {
                 role = Role.STUDENT;
             }
 
-            stakeholders.push(Stakeholder( _stakeholder, role));
+            stakeholders.push(Stakeholder( _stakeholder, role, _name));
 
             return true;
         }
@@ -441,7 +460,7 @@ contract ZuriPoll {
         return false;
     }
 
-    function removeStakeHolder(address _stakeholder) internal returns(bool) {
+    function removeStakeHolder(address _stakeholder) public returns(bool) {
         (bool _isStakeholder, uint256 position) = isStakeHolder(_stakeholder);
 
         if (_isStakeholder) {
