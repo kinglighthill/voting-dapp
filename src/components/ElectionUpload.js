@@ -16,17 +16,17 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { read, utils } from "xlsx";
-import { setChairman, addStakeholder, transferChairman, removeStakeholder } from '../api';
+import { createsElection, enableVoting, disableVoting, showResult, declareInterest, vote } from '../api';
 import { parseElection } from '../utils';
-import { CREATE_ELECTION, ENABLE_VOTING, DISABLE_VOTING, COMPILE_RESULT, SHOW_RESULT } from '../utils/constants';
+import { CREATE_ELECTION, ENABLE_VOTING, DISABLE_VOTING, COMPILE_RESULT, SHOW_RESULT, DECLARE_INTEREST, VOTE } from '../utils/constants';
 
-const Election = ({text, reload, loading, action}) => {
+const ElectionUpload = ({text, reload, loading, action, election}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const initialRef = useRef();
   const finalRef = useRef();
   const [id, setId] = useState(0);
-  const [file, setFile] = useState([])
-  const [election, setElection] = useState({});
+  const [file, setFile] = useState([]);
+  const [manifesto, setManifesto] = useState('');
   const [submitted, setSubmitted] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -50,6 +50,19 @@ const Election = ({text, reload, loading, action}) => {
     setTimeout(() => {
       setSubmitted('');
       onClose();
+      toast({
+        title: 'Successfull',
+        description: message,
+        status: 'success',
+        duration: '5000',
+        isClosable: true,
+      });
+      reload(!loading);
+    }, 1000);
+  }
+
+  const onComplete = (message) => {
+    setTimeout(() => {
       toast({
         title: 'Successfull',
         description: message,
@@ -88,16 +101,38 @@ const Election = ({text, reload, loading, action}) => {
 
       try {
         if (action === CREATE_ELECTION) {
-          console.log("File: ", file)
-          console.log("Election: ", parseElection(file))
+          const election = parseElection(file)
+          console.log(election)
+          createsElection({
+            ethereum: ethereum, 
+            positions: election["Position"], 
+            descriptions: election["Description"], 
+            roleLimits: election["RoleLimit"]
+          }, () => onSuccess("Election created successfully"), onErrorOccured)
         } else if (action === ENABLE_VOTING) {
-          console.log(action)
+          enableVoting({
+            ethereum: ethereum, 
+            id: id
+          }, () => onSuccess("Voting enabled"), onErrorOccured)
         } else if (action === DISABLE_VOTING) {
-          console.log(action)
+          disableVoting({
+            ethereum: ethereum, 
+            id: id
+          }, () => onSuccess("Voting disabled"), onErrorOccured)
         } else if (action === COMPILE_RESULT) {
           console.log(action)
         } else if (action === SHOW_RESULT) {
-          console.log(action)
+          showResult({
+            ethereum: ethereum, 
+            id: id
+          }, () => onSuccess("Result made public"), onErrorOccured)
+        } else if (action === DECLARE_INTEREST) {
+          declareInterest({
+            ethereum: ethereum, 
+            electionId: election.id, 
+            pollId: election.pollId, 
+            manifesto: manifesto
+          }, () => onSuccess("Interest Declared"), onErrorOccured)
         }
       } catch (error) {
           onErrorOccured()
@@ -108,9 +143,28 @@ const Election = ({text, reload, loading, action}) => {
     }
   };
 
+  const castVote = () => {
+    console.log("Voted")
+    try {
+    vote({
+      ethereum: window.ethereum, 
+      electionId: election.id, 
+      pollId: election.pollId, 
+      candidate: election.candidate,
+    }, () => onComplete("Voted successfully"), onErrorOccured)
+    }
+
+    catch(er) {
+      console.log(er)
+    }
+  }
+
   let title
   const idLabel = "Election id"
   const idPlaceholder = "Enter election id"
+  
+  const manifestoLabel = "Your manifesto"
+  const manifestoPlaceholder = "Enter your manifesto"
 
   if (action === CREATE_ELECTION) {
       title = "Create Election"
@@ -122,11 +176,13 @@ const Election = ({text, reload, loading, action}) => {
     title = "Compile Result"
   } else if (action === SHOW_RESULT) {
     title = "Show Result"
-  }
+  } else if (action === DECLARE_INTEREST) {
+    title = "Declare Interest"
+  } 
 
   return (
     <div>
-      <Button onClick={onOpen} bg="purple" color="white" ml={5}>
+      <Button onClick={action !== VOTE ? onOpen : castVote} bg="purple" color="white" ml={5}>
         { 
             text
         }
@@ -144,7 +200,7 @@ const Election = ({text, reload, loading, action}) => {
           <ModalBody pb={6}>
             <form action="" onSubmit={submitUpload}>
                 {
-                    action !== CREATE_ELECTION ? 
+                    action !== CREATE_ELECTION && action !== DECLARE_INTEREST ? 
                         <>
                             <FormLabel as="view">{idLabel}</FormLabel>
                             <Input
@@ -155,11 +211,23 @@ const Election = ({text, reload, loading, action}) => {
                                 onChange={e => setId(e.target.value)}
                             />
                         </>
-                    :
+                    : action !== DECLARE_INTEREST ?
                         <>
-                            <FormLabel as="view">Select file</FormLabel>
-                            <Input type="file" required mb={4} onChange={captureFile} />
+                          <FormLabel as="view">Select file</FormLabel>
+                          <Input type="file" required mb={4} onChange={captureFile} />
                         </>
+                    :
+                    <>
+                      <FormLabel as="view">{manifestoLabel}</FormLabel>
+                        <Input
+                            type="text"
+                            placeholder={manifestoPlaceholder}
+                            required
+                            mb={4}
+                            onChange={e => setManifesto(e.target.value)}
+                        />
+                      </>
+                        
                 }
               <ModalFooter>
                 <Text mr={2} color={'green.500'}>
@@ -191,4 +259,4 @@ const Election = ({text, reload, loading, action}) => {
   );
 };
 
-export default Election;
+export default ElectionUpload;

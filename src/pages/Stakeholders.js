@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Text, VStack, StackDivider } from "@chakra-ui/react"
+import { Box, Text } from "@chakra-ui/react"
 
 import { sortFiles, getRole } from "../utils"
  

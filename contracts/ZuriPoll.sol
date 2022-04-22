@@ -41,6 +41,7 @@ contract ZuriPoll {
         // Poll[] polls;
         bool enabled;
         bool show;
+        uint256 timeCreated;
     }
 
     address public owner;
@@ -220,7 +221,7 @@ contract ZuriPoll {
         (bool _electionExists, ) = electionExists(electionId);
 
         if (!_electionExists) {
-            elections.push(Election(electionId, msg.sender, false, false));
+            elections.push(Election(electionId, msg.sender, false, false, block.timestamp));
             polls[electionId] = _polls;
 
             electionId += 1;
