@@ -28,6 +28,7 @@
     "react-icons": "^3.0.0",
     "react-scripts": "5.0.1",
     "solidity-coverage": "^0.7.20",
+    "surge": "^0.23.1",
     "web-vitals": "^0.2.2",
     "xlsx": "^0.18.5"
   },
@@ -45,6 +46,7 @@
     "deploy": "node scripts/deploy.js",
     "generate": "npx hardhat generate",
     "help": "npx hardhat help",
+    "surge": "surge ./build",
     "test-contract": "npx hardhat test",
     "verify": "npx hardhat verify --network rinkeby 0x6676885C2a36fF675C5E3ff205C4208eCB205E71",
     "verify-2": "npx hardhat verify --network rinkeby 0xEcBb41320422d0A4a72df9446dc790d2e15E829e \"0x6676885C2a36fF675C5E3ff205C4208eCB205E71\""

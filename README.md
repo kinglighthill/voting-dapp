@@ -12,4 +12,4 @@ ZuriPoll is a decentralized voting application that allows Zuri as an organizati
 * [Zuri Poll Etherscan Url](https://rinkeby.etherscan.io/address/0x6676885C2a36fF675C5E3ff205C4208eCB205E71#code)
 * [Zuri Poll Token Etherscan Url](https://rinkeby.etherscan.io/address/0xEcBb41320422d0A4a72df9446dc790d2e15E829e#code)
 
-* [Deployed url](https://)
+* [Deployed url]([https://](https://blockgames-voting-dapp.surge.sh/))
