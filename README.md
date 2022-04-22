@@ -1,16 +1,17 @@
-# Voting Dapp
-# Basic Sample Hardhat Project
+## What is ZuriPoll ?
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+ZuriPoll is a decentralized voting application that allows Zuri as an organization to set up elections and vote using a custom token
 
-Try running some of the following tasks:
+* Contract address: "0x18E30654BE206b778a5ad7Dd08278BcED20FbD11"
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+* Network: rinkeby
+
+
+## Links
+
+# Zuri Poll Address
+* [Etherscan url](https://rinkeby.etherscan.io/address/0x6676885C2a36fF675C5E3ff205C4208eCB205E71#code)
+# Zuri Poll Token Address  
+* [Etherscan url](https://rinkeby.etherscan.io/address/0xEcBb41320422d0A4a72df9446dc790d2e15E829e#code)
+
+* [Deployed url](https://)

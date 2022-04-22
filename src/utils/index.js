@@ -6,6 +6,20 @@ export const sortFiles = (files) => {
     }
 }
 
+export const sortElections = (files) => {
+    if(files){
+        return files.sort(compareElection)
+    } else{
+        return files
+    }
+}
+
+export const timeConv = (t) => {
+    let x = t.toString(16) * 1000
+    x = new Date(+x);
+    return x.toDateString();
+}
+
 export const getRole = (role) => {
     if (role === 0) {
         return "Chairman"
@@ -62,6 +76,20 @@ function compare(first, second) {
             return -1;
         }
         if (first.role > second.role){
+            return 1;
+        }
+        return 0;
+    } catch(error) {
+        console.log("Error: ", error)
+    }
+}
+
+function compareElection(first, second) {
+    try {    
+        if (first.timeCreated.gt(second.timeCreated)){
+            return -1;
+        }
+        if (first.timeCreated.lt(second.timeCreated)){
             return 1;
         }
         return 0;

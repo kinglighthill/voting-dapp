@@ -46,7 +46,8 @@
     "generate": "npx hardhat generate",
     "help": "npx hardhat help",
     "test-contract": "npx hardhat test",
-    "verify": "npx hardhat etherscan-verify --api-key 2ZVQM5N7KMZVNSGE2BJY2KDU28N7QGCA9T"
+    "verify": "npx hardhat verify --network rinkeby 0x6676885C2a36fF675C5E3ff205C4208eCB205E71",
+    "verify-2": "npx hardhat verify --network rinkeby 0xEcBb41320422d0A4a72df9446dc790d2e15E829e \"0x6676885C2a36fF675C5E3ff205C4208eCB205E71\""
   },
   "eslintConfig": {
     "extends": "react-app"

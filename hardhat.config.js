@@ -5,7 +5,7 @@ require("solidity-coverage");
 
 require('dotenv').config()
 
-const { API_URL_INFURA, METAMASK_PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env
+const { API_URL_ALCHEMY, METAMASK_PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -26,16 +26,24 @@ const defaultNetwork = "localhost"
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
+  solidity: {
+    version: "0.8.4",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   defaultNetwork: `${defaultNetwork}`,
   networks: {
     hardhat: {
       chainId: 1337
     },
-    // rinkeby: {
-    //   url: API_URL_INFURA,
-    //   accounts: [METAMASK_PRIVATE_KEY],
-    // }
+    rinkeby: {
+      url: API_URL_ALCHEMY,
+      accounts: [METAMASK_PRIVATE_KEY],
+    }
   },
   etherscan: {
     apiKey: `${ETHERSCAN_API_KEY}`
