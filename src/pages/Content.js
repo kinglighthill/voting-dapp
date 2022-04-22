@@ -75,7 +75,7 @@ export default function Content({
             setIsTeacher(is_userTeacher)
             setShowDeclareInterest(!is_userStudent)
             setIsStudent(is_userStudent)
-            setIsOwner(user == "0xD0aAB48daF5A4851C2c71b05165CeD35CaA9197E".toLowerCase())
+            setIsOwner(user === "0xD0aAB48daF5A4851C2c71b05165CeD35CaA9197E".toLowerCase())
         }
         fetchStakeholdersAndCount()
     }, [loading])
