@@ -279,3 +279,16 @@ export const getStakeholders = async (ethereum) => {
         return []
     }
 }
+
+export const create = async (ethereum, positions, descriptions, roleLimits) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.createElection(positions, descriptions, roleLimits)
+        // await txn.wait()
+        return parseStakeholder(txn)
+    } catch(error) {
+        console.log(error)
+        return []
+    }
+}
