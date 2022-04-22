@@ -1,10 +1,28 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { Contract } = require("ethers");
 
-describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const contractFactory = await ethers.getContractFactory("ZuriPoll");
-    const contract = await contractFactory.deploy("Hello, world!");
-    await contract.deployed();
-  });
+require("@nomiclabs/hardhat-waffle"); 
+
+describe("ZuriPoll", function () {
+    let contract;
+    let owner;
+    let zuriPoll;
+    let stakeholders;
+   
+      
+beforeEach(async function () {
+ const ZuriPoll = await hre.ethers.getContractFactory("ZuriPollToken");
+ [owner, addr1, addr2] = await ethers.getSigners();
+zuriPoll = await ZuriPoll.deploy(owner.address);
+ await zuriPoll.deployed();
+ 
+ });
+
+ it("It should deploy successfully", async function (){
+   console.log("success");
+ });
+
+
+
+ 
+ 
 });
