@@ -11,15 +11,13 @@ import {
   ModalContent,
   FormLabel,
   Input,
-  RadioGroup,
-  Radio,
-  HStack,
   ModalFooter,
   useToast,
   Text,
 } from '@chakra-ui/react';
 import { Buffer } from 'buffer';
 import { setChairman, addStakeholder, transferChairman, removeStakeholder } from '../api';
+import { convertRole } from '../utils';
 
 const Upload = ({text, reload, loading, addChairman, changeChairman, batchAdd, remove}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -29,14 +27,11 @@ const Upload = ({text, reload, loading, addChairman, changeChairman, batchAdd, r
   const [address, setAddress] = useState('');
   const [role, setRole] = useState(3);
   const [file, setFile] = useState(null);
-  // const [fileDetails, setFileDetails] = useState('');
-  // const [cid, setCid] = useState('');
   const [submitted, setSubmitted] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const captureFile = e => {
     const data = e.target.files[0];
-    // setFileDetails(data);
     const reader = new window.FileReader();
     reader.readAsArrayBuffer(data);
     reader.onloadend = () => {
@@ -44,8 +39,6 @@ const Upload = ({text, reload, loading, addChairman, changeChairman, batchAdd, r
     };
   };
   const toast = useToast();
-
-  // 0xD0aAB48daF5A4851C2c71b05165CeD35CaA9197E
 
   const onSuccess = (message) => {
     setSubmitted(message)
@@ -129,7 +122,7 @@ const Upload = ({text, reload, loading, addChairman, changeChairman, batchAdd, r
           console.log(error);
       }
     } else{
-      return
+        return
     }
   };
 
@@ -154,18 +147,7 @@ const Upload = ({text, reload, loading, addChairman, changeChairman, batchAdd, r
   const roleLabel = !addChairman ? "Enter role of chairman" : ""
 
   const inputRole = (e) => {
-      let value
-      
-      if (e.target.value === "Chairman") {
-          value = 0
-      } else if(e.target.value === "Admin") {
-        value = 1
-      } else if(e.target.value === "Teacher") {
-        value = 2
-      } else {
-        value = 3
-      }
-    
+      const value = convertRole(e.target.value)
       setRole(value)
   }
 
