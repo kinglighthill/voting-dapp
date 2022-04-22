@@ -1,7 +1,9 @@
-import { Box, Button, Grid, HStack, Input, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Input, Text, VStack } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { buyZPToken, getZPTokenRate, getBalance, getStakeholders, getStakeholdersCount, fetchChairman } from '../api';
+import { CREATE_ELECTION, ENABLE_VOTING, DISABLE_VOTING, COMPILE_RESULT, SHOW_RESULT } from '../utils/constants';
 import Upload from '../components/Upload';
+import Election from '../components/ElectionUpload';
 import Stakeholders from './Stakeholders'
 import Elections from './Elections'
 
@@ -13,85 +15,75 @@ export default function Content({
     const [balance, setBalance] = useState(0)
     const [stakeholdersCount, setStakeholdersCount] = useState(0)
     const [stakeholders, setStakeholders] = useState([])
-//   const [publicFiles, setPublicFiles] = useState([]);
-//   const [myPublicFiles, setMyPublicFiles] = useState([]);
-//   const [privateFiles, setPrivateFiles] = useState([]);
-//   const [sharedFiles, setSharedFiles] = useState([]);
-//   const [searchedFiles, setSearchedFiles] = useState([]);
-//   const [allFiles, setAllFiles] = useState([]);
+    
+    const [param, setParam] = useState('');
+    const [loading, setLoading] = useState(false)
 
-  const [param, setParam] = useState('');
-  const [loading, setLoading] = useState(false)
+    const buyToken = async(amount) => {
+        if (amount !== null && amount !== "") {
+            const { ethereum } = window
+            
+            const rate = await getZPTokenRate(ethereum) || 1000
+            const tokenInEther = parseInt(amount) / rate
+            
+            alert(`You will be charged ${tokenInEther} ethers plus additional gas fees for this transaction`)
 
-  const buyToken = async(amount) => {
-      if (amount !== null && amount !== "") {
-        const { ethereum } = window
-        
-        const rate = await getZPTokenRate(ethereum) || 1000
-        const tokenInEther = parseInt(amount) / rate
-        
-        alert(`You will be charged ${tokenInEther} ethers plus additional gas fees for this transaction`)
+            const bought = await buyZPToken(ethereum, tokenInEther)
+            if (bought) {
+                const newBalance = await getBalance(ethereum)
+                setBalance(newBalance)
+            } 
 
-        const bought = await buyZPToken(ethereum, tokenInEther)
-        if (bought) {
-            const newBalance = await getBalance(ethereum)
-            setBalance(newBalance)
+            return
         } 
+        
+        alert(`Input a value`)
+    };
 
-        return
-      } 
-      
-      alert(`Input a value`)
-  };
+    const handleBuyToken = (e) => {
+        setParam(e.target.value)
+    }
 
-  const handleBuyToken = (e) => {
-    setParam(e.target.value)
-  }
+    useEffect(() => {
+        async function fetchStakeholdersAndCount() {
+            await getStakeholdersCount()
+            await getStakeholders()
+        }
+        fetchStakeholdersAndCount()
+    }, [loading])
 
-  useEffect(() => {
-      async function fetchStakeholders() {
-          const stakeholders = await getStakeholders(window.ethereum)
-          const stakeholdersCount = await getStakeholdersCount(window.ethereum)
+    useEffect(() => {
+        async function fetchStakeholdersAndCount() {
+            await fetchStakeholdersCount()
+            await fetchStakeholders()
+        }
+        fetchStakeholdersAndCount()
+    }, [stakeholdersCount, stakeholders])
 
-          setStakeholdersCount(stakeholdersCount)
-          setStakeholders(stakeholders)
-      }
-      fetchStakeholders()
-  }, [stakeholdersCount, stakeholders])
+    useEffect(() => {
+        async function getUserBalance() {
+            const userBalance = await getBalance(window.ethereum)
+            setBalance(userBalance)
+        }
+        getUserBalance()
+    }, [balance])
 
-  useEffect(() => {
-      async function getUserBalance() {
-          const userBalance = await getBalance(window.ethereum)
-          setBalance(userBalance)
-      }
-      getUserBalance()
-  }, [balance])
+    // function to get all stakeholders
+    const fetchStakeholders = async () => {
+        const stakeholders = await getStakeholders(window.ethereum)
+        setStakeholders(stakeholders)
+    };
 
-  //function to get all public files
-//   const getPublicFiles = async () => {
-//     const files = await fetchPublicFiles(window.ethereum);
-//     setPublicFiles(files);
-//   };
+    // function to get number of stakeholders
+    const fetchStakeholdersCount = async () => {
+        const stakeholdersCount = await getStakeholdersCount(window.ethereum)
+        setStakeholdersCount(stakeholdersCount)
+    };
 
-//   useEffect(() => {
-//     async function fetchFiles() {
-//       await getPublicFiles();
-//       await getMyPublicFiles();
-//       await getPrivateFiles();
-//       await getSharedFiles();
-//     }
-//     fetchFiles();
-//   }, [loading]);
-
-//function to trigger change in loading state causing the page to remount
-  const refresh = (x) => {
-      setLoading(x)
-  }
-
-//   useEffect(() => {
-//     var newArr = publicFiles.concat(privateFiles, sharedFiles);
-//     setAllFiles(newArr);
-//   }, [publicFiles, privateFiles, sharedFiles]);
+    //function to trigger change in loading state causing the page to remount
+    const refresh = (x) => {
+        setLoading(x)
+    }
 
   return (
     <VStack minH="100vh" align='stretch' spacing={10} p={3}>
@@ -131,18 +123,38 @@ export default function Content({
                 Buy Tokens
             </Button>
         </Box>
-        <Box
-            d="flex"
-            w={{ base: '45%'}}
-        >
-            <Box mt="30px"  d="flex" px={10} >
-                <Upload  text="Add Stakeholder" reload={refresh} loading={loading} addChairman={false} changeChairman={false} batchAdd={false} remove={false}/>
-                {/* <Upload  text="Batch Add Stakeholders" reload={refresh} loading={loading} addChairman={false} changeChairman={false} batchAdd={true} remove={false}/> */}
-                <Upload  text="Add Chairman" reload={refresh} loading={loading} addChairman={true} changeChairman={false} batchAdd={false} remove={false}/>
-                <Upload  text="Change Chairman" reload={refresh} loading={loading} addChairman={false} changeChairman={true} batchAdd={false} remove={false}/>
-                <Upload  text="Remove Stakeholder" reload={refresh} loading={loading} addChairman={false} changeChairman={false} batchAdd={false} remove={true}/>
-            </Box>
-        </Box>
+        {
+            showStakeholders ? 
+                <Box
+                d="flex"
+                w={{ base: '45%'}}
+                >
+                    <Box mt="30px"  d="flex" px={10} >
+                        <Upload  text="Add Stakeholder" reload={refresh} loading={loading} addChairman={false} changeChairman={false} batchAdd={false} remove={false}/>
+                        {/* <Upload  text="Batch Add Stakeholders" reload={refresh} loading={loading} addChairman={false} changeChairman={false} batchAdd={true} remove={false}/> */}
+                        <Upload  text="Add Chairman" reload={refresh} loading={loading} addChairman={true} changeChairman={false} batchAdd={false} remove={false}/>
+                        <Upload  text="Change Chairman" reload={refresh} loading={loading} addChairman={false} changeChairman={true} batchAdd={false} remove={false}/>
+                        <Upload  text="Remove Stakeholder" reload={refresh} loading={loading} addChairman={false} changeChairman={false} batchAdd={false} remove={true}/>
+                    </Box>
+                </Box>
+            : null
+        }
+        {
+            showElections ? 
+                <Box
+                d="flex"
+                w={{ base: '45%'}}
+                >
+                    <Box mt="30px"  d="flex" px={10} >
+                        <Election  text="Create Election" reload={refresh} loading={loading} action={CREATE_ELECTION} />
+                        <Election  text="Enable Voting" reload={refresh} loading={loading} action={ENABLE_VOTING} />
+                        <Election  text="Disable Voting" reload={refresh} loading={loading} action={DISABLE_VOTING} />
+                        <Election  text="Compile Result" reload={refresh} loading={loading} action={COMPILE_RESULT} />
+                        <Election  text="Make Result Public" reload={refresh} loading={loading} action={SHOW_RESULT} />
+                    </Box>
+                </Box>
+            : null
+        }
       </Box>
 
       <Box

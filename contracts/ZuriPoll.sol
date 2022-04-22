@@ -249,30 +249,21 @@ contract ZuriPoll {
         return stakeholders;
     }    
 
-    function createsElection(string[] calldata _positions, string[] calldata _descriptions, uint256[] calldata _roleLimits) 
+    function createsElection(string[] calldata _positions, string[] calldata _descriptions, 
+        uint256[] calldata _roleLimits) 
         public onlyChairmanAdminsAndTeachers {
         // only admin/chairman can create the election
         // adds the different positions available and roles that can vie and cost of each post
         // sets election date
 
         require(_positions.length == _descriptions.length, "Invalid input parameters");
-        // require(_positions.length == _positionTypes.length, "Invalid input parameters");
         require(_positions.length == _roleLimits.length, "Invalid input parameters");
-        // require(_positions.length == fees.length, "Invalid input parameters");
 
         require(_positions.length <= 20, "exceeds number of allowed inputs");
 
         Poll[] storage _polls = polls[electionId];
 
         for(uint256 i = 0; i < _positions.length; i++) {
-            // PositionType _positionType;
-
-            // if ( _positionTypes[i] == 1) {
-            //     _positionType = PositionType.PAID;
-            // } else {
-            //     _positionType = PositionType.FREE;
-            // }
-
             Role roleLimit;
 
             if (_roleLimits[i] == 1) {
@@ -283,9 +274,7 @@ contract ZuriPoll {
                 roleLimit = Role.STUDENT;
             }
 
-            // Candidate[] memory candidates;
-            // Poll memory poll = Poll(i, _positions[i], _descriptions[i], _positionType, roleLimit, fees[i], candidates, 0, address(0));
-            Poll memory poll = Poll(pollId, _positions[i], _descriptions[i], Role.ADMIN, 0, address(0));
+            Poll memory poll = Poll(pollId, _positions[i], _descriptions[i], roleLimit, 0, address(0));
             _polls.push(poll);
 
             pollId += 1;
