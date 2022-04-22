@@ -6,29 +6,11 @@ import "./ZuriPollToken.sol";
 contract ZuriPoll {
     enum Role { CHAIRMAN, ADMIN, TEACHER, STUDENT }
 
-    enum PositionType { FREE, PAID }
-
-    event ElectionCreated(address createdBy, uint256 electionId, uint256 timeCreated);
-
-    event StartElection(uint256 electionId, uint256 timeStarted);
-    
-    event EndElection(uint256 electionId, uint256 timeEnded);
-
-    event Voted(address voter, uint256 timeVoted);
-
-    event DeclaredInterest(address candidate, uint256 timeDeclared);
-
     event StakeHolderAdded(address addedBy, uint256 timeAdded, bool added);
-
-    event StakeHoldersAdded(address addedBy, uint256 timeAdded, uint256 length);
 
     event StakeHolderRemoved(address removedBy, uint256 timeRemoved, bool removed);
 
-    event StakeHoldersRemoved(address removedBy, uint256 timeRemoved, uint256 length);
-
     event ChairmanChanged(bool isStakeholder, bool chairmanExists, uint256 timeChanged);
-
-    event ShowResult(uint256 electionId, uint256 timeEnded);
 
     struct Stakeholder {
         address id;
@@ -47,9 +29,7 @@ contract ZuriPoll {
         uint256 id;
         string position;
         string description;
-        // PositionType positionType;
         Role roleLimit;
-        // uint256 fee; 
         // Candidate[] contestants;
         uint256 totalVotes;
         address winner;
@@ -97,14 +77,6 @@ contract ZuriPoll {
         bool _isChairman = isChairman(msg.sender);
 
         require(msg.sender == owner || _isChairman, "Only owner and chairman can call this function");
-        _;    
-    }
-
-    modifier onlyChairmanAndAdmins() {
-        bool _isChairman = isChairman(msg.sender);
-        bool _isAdmin = isAdmin(msg.sender);
-
-        require(_isChairman || _isAdmin, "Only chairman and admins can call this function");
         _;    
     }
 
@@ -202,47 +174,12 @@ contract ZuriPoll {
         if (added) emit StakeHolderAdded(msg.sender, block.timestamp, added);
     }
 
-    function addStakeholders(address[] calldata _stakeholders, uint256[] calldata _roles, string[] calldata _names) public onlyOwnerChairmanAndAdmins {
-        // batch add of stakeholders and their roles
-        // only owner, chairman and teachers can add stakeholders
-
-        require(_stakeholders.length == _roles.length, "Invalid input parameters");
-        require(_stakeholders.length <= 200 && _roles.length <= 200, "exceeds number of allowed inputs");
-
-        uint stakeholdersAdded = 0;
-
-        for(uint256 i = 0; i < _stakeholders.length; i++) {
-            bool added = addStakeHolder(_stakeholders[i], _roles[i], _names[i]);
-
-            if (added) stakeholdersAdded += 1;
-        }
-
-        emit StakeHoldersAdded(msg.sender, block.timestamp, stakeholdersAdded);
-    }
-
     function removeStakeholder(address _stakeholder) public onlyOwnerChairmanAndAdmins {
         // batch remove of stakeholder and their role
         // only owner, chairman and teachers can remove stakeholder
 
         bool removed = removeStakeHolder(_stakeholder);
         if (removed) emit StakeHolderRemoved(msg.sender, block.timestamp, removed);
-    }
-
-    function removeStakeholders(address[] calldata _stakeholders) public onlyOwnerChairmanAndAdmins {
-        // batch remove of stakeholders and their roles
-        // only owner, chairman and teachers can remove stakeholders
-
-        require(_stakeholders.length <= 200, "exceeds number of allowed inputs");
-
-        uint stakeholdersRemoved = 0;
-
-        for(uint256 i = 0; i < _stakeholders.length; i++) {
-            bool added = removeStakeHolder(_stakeholders[i]);
-
-            if (added) stakeholdersRemoved += 1;
-        }
-
-        emit StakeHoldersRemoved(msg.sender, block.timestamp, stakeholdersRemoved);
     }
 
     function getStakeholders() public view returns(Stakeholder[] memory) { 
@@ -286,7 +223,6 @@ contract ZuriPoll {
             elections.push(Election(electionId, msg.sender, false, false));
             polls[electionId] = _polls;
 
-            emit ElectionCreated(msg.sender, electionId, block.timestamp);
             electionId += 1;
         }
     }
@@ -305,7 +241,7 @@ contract ZuriPoll {
             if (_pollExists) {
                 Poll storage _poll = pollsArray[_pollPosition];
                 
-                if (canVie(msg.sender, _poll.roleLimit)) {    
+                // if (canVie(msg.sender, _poll.roleLimit)) {    
                     (bool _candidateExists, ) = candidateExists(msg.sender, contestants[_poll.id]);
 
                     if (!_candidateExists) {
@@ -314,10 +250,8 @@ contract ZuriPoll {
                         Candidate[] storage _contestants = contestants[_poll.id];
                         _contestants.push(_candidate);
                         contestants[_poll.id] = _contestants;
-                        
-                        emit DeclaredInterest(msg.sender, block.timestamp);
                     }
-                }
+                // }
             }
         }
     }
@@ -346,8 +280,6 @@ contract ZuriPoll {
                         voters.push(msg.sender);
 
                         electorates[candidate.id] = voters;
-
-                        emit Voted(msg.sender, block.timestamp);
                     }
                 }
             }
@@ -362,8 +294,6 @@ contract ZuriPoll {
 
         if (_electionExists) {
             elections[position].enabled = true;
-
-            emit StartElection(_id, block.timestamp);
         }
     }
 
@@ -375,12 +305,10 @@ contract ZuriPoll {
 
         if (_electionExists) {
             elections[position].enabled = false;
-
-            emit EndElection(_id, block.timestamp);
         }
     }
 
-    function compileResult(uint256 _id) public onlyOwnerChairmanAndAdmins view {
+    function showResult(uint256 _id) public onlyOwnerChairmanAndAdmins {
         // compiles the election result
         // only chairman and teachers can compile result 
 
@@ -388,7 +316,7 @@ contract ZuriPoll {
         if (_electionExists) {
             Election memory _polls = elections[position];
 
-            require(_polls.enabled, "Voting has not ended");
+            require(!_polls.enabled, "Voting has not ended");
 
             Poll[] memory _innerPolls = polls[_id];
 
@@ -409,19 +337,7 @@ contract ZuriPoll {
 
                 _innerPolls[i] = _poll;
             }
-        }
-    }
-
-    function showResult(uint256 _id) public onlyChairmanAdminsAndTeachers {
-        // make result public
-        // only chairman and teachers can make election result public
-
-        (bool _electionExists, uint256 position) = electionExists(_id);
-
-        if (_electionExists) {
             elections[position].show = true;
-
-            emit ShowResult(_id, block.timestamp);
         }
     }
 
@@ -462,10 +378,20 @@ contract ZuriPoll {
         return false;
     }
 
-    function canVie(address voter, Role roleLimit) internal view returns(bool) {
-        (bool _isStakeholder, uint256 position) = isStakeHolder(voter);
+    function getElections() public view returns(Election[] memory) {
+        return elections;
+    }
 
-        return _isStakeholder && stakeholders[position].role <= roleLimit;
+    function getPolls(uint256 _id) public view returns(Poll[] memory) {
+        return polls[_id];
+    }
+
+    function getCandidates(uint256 _id) public view returns(Candidate[] memory) {
+        return contestants[_id];
+    }
+
+    function getVoters(address _id) public view returns(address[] memory) {
+        return electorates[_id];
     }
 
     function electionExists(uint256 _id) internal view returns(bool, uint256) { 
@@ -499,28 +425,4 @@ contract ZuriPoll {
 
         return (false, 0);
     }
-
-    // function pollExists(uint256 _id, Poll[] memory _polls) internal pure returns(bool, uint256) { 
-    //     for (uint256 i = 0; i < _polls.length; i++) {
-    //         if (_id == _polls[i].id) return (true, i);
-    //     }
-
-    //     return (false, 0);
-    // }
-
-    // function candidateExists(address _id, Candidate[] memory _candidates) internal pure returns(bool, uint256) { 
-    //     for (uint256 i = 0; i < _candidates.length; i++) {
-    //         if (_id == _candidates[i].id && !_candidates[i].disqualified) return (true, i);
-    //     }
-
-    //     return (false, 0);
-    // }
-
-    // function voterExists(address _id, address[] memory _voters) internal pure returns(bool, uint256) { 
-    //     for (uint256 i = 0; i < _voters.length; i++) {
-    //         if (_id == _voters[i]) return (true, i);
-    //     }
-
-    //     return (false, 0);
-    // }
 }
