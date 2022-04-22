@@ -280,15 +280,79 @@ export const getStakeholders = async (ethereum) => {
     }
 }
 
-export const create = async (ethereum, positions, descriptions, roleLimits) => {
+export const createsElection = async (ethereum, _positions, _descriptions, _roleLimits) => {
     try {
         const contract =  await getPollContract(ethereum)
 
-        const txn = await contract.createElection(positions, descriptions, roleLimits)
+        const txn = await contract.createsElection(_positions, _descriptions, _roleLimits)
         // await txn.wait()
-        return parseStakeholder(txn)
     } catch(error) {
         console.log(error)
-        return []
+    }
+}
+
+export const declareInterest = async (ethereum, _electionId, _pollId, _manifesto) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.declareInterest(_electionId, _pollId, _manifesto)
+        // await txn.wait()
+    } catch(error) {
+        console.log(error)
+    }
+}
+
+export const vote = async (ethereum, _electionId, _pollId, _candidate) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.vote(_electionId, _pollId, _candidate)
+        // await txn.wait()
+    } catch(error) {
+        console.log(error)
+    }
+}
+
+export const enableVoting = async (ethereum, _id) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.enableVoting(_id)
+        // await txn.wait()
+    } catch(error) {
+        console.log(error)
+    }
+}
+
+export const disableVoting = async (ethereum, _id) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.disableVoting(_id)
+        // await txn.wait()
+    } catch(error) {
+        console.log(error)
+    }
+}
+
+export const compileResult = async (ethereum, _id) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.compileResult(_id)
+        // await txn.wait()
+    } catch(error) {
+        console.log(error)
+    }
+}
+
+export const showResult = async (ethereum, _id) => {
+    try {
+        const contract =  await getPollContract(ethereum)
+
+        const txn = await contract.showResult(_id)
+        // await txn.wait()
+    } catch(error) {
+        console.log(error)
     }
 }
