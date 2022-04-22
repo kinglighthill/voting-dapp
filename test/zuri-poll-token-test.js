@@ -1,50 +1,54 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+// const { string } = require("hardhat/internal/core/params/argumentTypes");
 
 
 require("@nomiclabs/hardhat-waffle"); 
- describe("ZuriPollToken", function () {
+   describe("ZuriPollToken", function () {
+    let ZuriPollToken;
+    // let owner;
+    // let address;
+    // let addr1;
+    // let addr2;
+  
+         
+   beforeEach(async function () {
+    const ZuriPollToken = await hre.ethers.getContractFactory("ZuriPollToken");
+   
+    const zuriPollToken = await ZuriPollToken.deploy("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+    await zuriPollToken.deployed();
+    
 
-  let ZuriPollToken;
-  let zuriPollToken;
-  let owner;
+    [owner, addr1, addr2] = await ethers.getSigners();
+    
+    });
 
-  describe("Zuri poll Token", function () {
-    it("Deployment should assign the total supply of tokens to the owner", async function () {
-      const [owner] = await ethers.getSigners();
-  
-      const ZuriPollToken = await ethers.getContractFactory("Token");
-  
-      const zuriPollToken = await ZuriPollToken.deploy();
-  
-      const tokensPerEther = await hardhatToken.balanceOf(owner.address);
-      expect(await zuriPollToken.totalSupply()).to.equal(tokensPerEther, 1000);
+    it("It should deploy successfully", async function (){
+      console.log("success");
     });
 
     
-    //function to convert to decimals
-  it("it should covert token in decimals", async function () {
-    console.log("\n    ✅ confirming...\n");
-    const value = await zuriPollToken.convertToDecimals;
-  await sleep(5000); // wait 5 seconds for transaction to confirm!!
-  expect (convertToDecimals).to.equal(value, 1000);
-
-});
-
-// buy token function
-it("it should buy token", async function () {
-  console.log("\n    ✅ confirming...\n");
-  const token = await zuriPollToken.connect(msg.sender).transferFrom(owner) ;
-await sleep(5000); // wait 5 seconds for transaction to confirm!!
-expect (transferFrom).to.equal(token, 1);
-
+    it("should deploy total supply for owner of contract", async function () {
+      const ownerBalance = await ZuriPollToken.balanceOf("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+      console.log();
+      // expect(await zuriPollToken.totalSupply()).to.equal(ownerBalance);
+    })
 
   });
-  
+
+
+
   
 
-});
 
- });
+
+
+//  describe("Deploying the Token", function () {
+//   it("it should deploy", async function ()  {
+//     const ZuriPollToken = await hre.ethers.getContractFavtory("ZuriPollToken");
+//     const zuriPollToken = await ZuriPollToken.deploy(),
+//     await zuriPollToken.deployed();
+//   });
+//  });
 
 
